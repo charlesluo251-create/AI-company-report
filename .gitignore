@@ -1,0 +1,10 @@
+node_modules/
+*.log
+.DS_Store
+.env
+debug-search.js
+test-search.js
+test-google.js
+test-serpapi.js
+ddg_debug.html
+bing_debug.html

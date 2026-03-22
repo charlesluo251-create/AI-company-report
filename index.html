@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帮我吧 - 客户情报报告Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #50E3C2;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .main-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .input-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group-custom i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 1.2rem;
+        }
+
+        .input-group-custom input,
+        .input-group-custom select {
+            padding-left: 50px;
+            height: 55px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .input-group-custom input:focus,
+        .input-group-custom select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(74,144,226,0.1);
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+            color: white;
+        }
+
+        .btn-generate:disabled {
+            background: #ccc;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: var(--primary-color);
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 10px;
+            background-color: #e9ecef;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .loading-steps {
+            margin-top: 20px;
+            padding: 0 20px;
+        }
+
+        .step-item {
+            padding: 8px 0;
+            font-size: 0.9rem;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-item.completed {
+            color: #28a745;
+        }
+
+        .step-item.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .step-icon {
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+        }
+
+        .report-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .report-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .report-card {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .report-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .report-meta {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .report-actions .btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .report-actions .btn:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .report-body {
+            padding: 40px;
+        }
+
+        .report-section-block {
+            margin-bottom: 35px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-title i {
+            color: var(--primary-color);
+            font-size: 1.4rem;
+        }
+
+        .content-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px 25px;
+            line-height: 1.8;
+            color: #444;
+        }
+
+        .content-box ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .content-box li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 8px;
+        }
+
+        .content-box li::before {
+            content: "▸";
+            color: var(--primary-color);
+            position: absolute;
+            left: -15px;
+            font-weight: bold;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-left: 4px solid var(--primary-color);
+            padding: 20px 25px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .highlight-box strong {
+            color: var(--primary-color);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .tag-primary {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .tag-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .tag-warning {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .tag-danger {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .main-container {
+                padding: 0;
+                max-width: none;
+            }
+
+            .header, .input-card, .loading-spinner, .report-actions {
+                display: none !important;
+            }
+
+            .report-card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+
+            .report-header {
+                background: white;
+                color: #333;
+                border-bottom: 2px solid #333;
+            }
+
+            .report-body {
+                padding: 30px;
+            }
+
+            .content-box {
+                background: white;
+                border: 1px solid #eee;
+            }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .input-card, .report-body {
+                padding: 25px;
+            }
+
+            .report-header {
+                padding: 20px 25px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🎯 帮我吧 - 客户情报报告Bot</h1>
+            <p>输入公司名称，自动生成深度客户洞察报告</p>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="input-card" id="inputCard">
+            <div class="input-group-custom">
+                <i class="bi bi-building"></i>
+                <input type="text" id="companyName" class="form-control" placeholder="输入公司名称（例如：Grab, Shopee, Razer...）">
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="input-group-custom">
+                        <i class="bi bi-globe"></i>
+                        <select id="country" class="form-select">
+                            <option value="">选择国家</option>
+                            <option value="Malaysia">Malaysia 马来西亚</option>
+                            <option value="Singapore">Singapore 新加坡</option>
+                            <option value="Indonesia">Indonesia 印度尼西亚</option>
+                            <option value="Vietnam">Vietnam 越南</option>
+                            <option value="Thailand">Thailand 泰国</option>
+                            <option value="Philippines">Philippines 菲律宾</option>
+                            <option value="Other">其他</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group-custom">
+                        <i class="bi bi-briefcase"></i>
+                        <select id="industry" class="form-select">
+                            <option value="">选择行业</option>
+                            <option value="SaaS">SaaS 软件</option>
+                            <option value="E-commerce">E-commerce 电商</option>
+                            <option value="Fintech">Fintech 金融科技</option>
+                            <option value="Logistics">Logistics 物流</option>
+                            <option value="Telecommunications">Telecommunications 电信</option>
+                            <option value="Manufacturing">Manufacturing 制造业</option>
+                            <option value="Healthcare">Healthcare 医疗健康</option>
+                            <option value="Education">Education 教育</option>
+                            <option value="Other">其他</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group-custom">
+                <i class="bi bi-link-45deg"></i>
+                <input type="text" id="companyUrl" class="form-control" placeholder="LinkedIn 或官网链接（可选）">
+            </div>
+
+            <button class="btn btn-generate" id="generateBtn" onclick="generateReport()">
+                <i class="bi bi-magic"></i>
+                开始生成报告
+            </button>
+        </div>
+
+        <!-- 加载中 -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="loading-text" id="loadingText">正在分析公司信息...</div>
+            <div class="progress-container">
+                <div class="progress">
+                    <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="loading-steps" id="loadingSteps">
+                <!-- 动态生成的步骤列表 -->
+            </div>
+        </div>
+
+        <!-- 报告展示区域 -->
+        <div class="report-section" id="reportSection">
+            <div class="report-card" id="reportCard">
+                <div class="report-header">
+                    <div>
+                        <h2 id="reportTitle">公司名称</h2>
+                        <div class="report-meta" id="reportMeta">生成时间: 2026-03-20</div>
+                    </div>
+                    <div class="report-actions">
+                        <button class="btn" onclick="printReport()">
+                            <i class="bi bi-printer"></i> 打印
+                        </button>
+                        <button class="btn" onclick="generateReport()">
+                            <i class="bi bi-arrow-clockwise"></i> 重新生成
+                        </button>
+                    </div>
+                </div>
+
+                <div class="report-body">
+                    <!-- 公司信息 -->
+                    <div class="report-section-block">
+                        <div class="section-title">
+                            <i class="bi bi-building"></i>
+                            公司信息
+                        </div>
+                        <div class="content-box" id="companyInfo">
+                            <p>加载中...</p>
+                        </div>
+                    </div>
+
+                    <!-- 行业痛点分析 -->
+                    <div class="report-section-block">
+                        <div class="section-title">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            行业痛点分析
+                        </div>
+                        <div class="content-box" id="painPoints">
+                            <p>加载中...</p>
+                        </div>
+                    </div>
+
+                    <!-- 帮我吧产品契合度 -->
+                    <div class="report-section-block">
+                        <div class="section-title">
+                            <i class="bi bi-check-circle"></i>
+                            帮我吧产品契合度
+                        </div>
+                        <div class="content-box" id="productFit">
+                            <p>加载中...</p>
+                        </div>
+                    </div>
+
+                    <!-- 竞争对手分析 -->
+                    <div class="report-section-block">
+                        <div class="section-title">
+                            <i class="bi bi-graph-up"></i>
+                            竞争对手分析
+                        </div>
+                        <div class="content-box" id="competitors">
+                            <p>加载中...</p>
+                        </div>
+                    </div>
+
+                    <!-- 本地化洞察 -->
+                    <div class="report-section-block">
+                        <div class="section-title">
+                            <i class="bi bi-globe-asia-australia"></i>
+                            本地化洞察
+                        </div>
+                        <div class="content-box" id="localization">
+                            <p>加载中...</p>
+                        </div>
+                    </div>
+
+                    <!-- 销售切入点和话术 -->
+                    <div class="report-section-block">
+                        <div class="section-title">
+                            <i class="bi bi-chat-quote"></i>
+                            销售切入点和话术
+                        </div>
+                        <div class="content-box" id="salesPitch">
+                            <p>加载中...</p>
+                        </div>
+                    </div>
+
+                    <!-- 数据来源 -->
+                    <div class="report-section-block">
+                        <div class="section-title">
+                            <i class="bi bi-link-45deg"></i>
+                            数据来源
+                        </div>
+                        <div class="content-box" id="dataSources">
+                            <p>加载中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
