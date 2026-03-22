@@ -1,5 +1,6 @@
 // 豆包 API 配置（现在由后端管理，前端只需要调用后端）
-const BACKEND_API_URL = 'http://localhost:3001/api/generate-report';
+// 自动检测当前域名，本地开发用localhost，部署用实际域名
+const BACKEND_API_URL = `${window.location.protocol}//${window.location.host}/api/generate-report`;
 
 // ========== 工具函数 ==========
 
@@ -145,7 +146,7 @@ async function generateReport() {
 
     } catch (error) {
         console.error('生成报告失败:', error);
-        alert('生成报告时出错：' + error.message + '\n\n请确保后端服务器正在运行（http://localhost:3000）');
+        alert('生成报告时出错：' + error.message + '\n\n请稍后重试或联系技术支持');
         toggleLoading(false);
     } finally {
         generateBtn.disabled = false;
